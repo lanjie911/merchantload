@@ -57,7 +57,8 @@ let vIns = new Vue(
         data: {
             acc: "",
             pwd: "",
-            vcode: ""
+            vcode: "",
+            vsrc: "/vcode"
         },
         created: function () {
             //document.body.style = "text-align:center";
@@ -67,6 +68,11 @@ let vIns = new Vue(
             reset: function () {
                 this.acc = "";
                 this.pwd = "";
+                this.vcode = "";
+            },
+            refreshImg: function(){
+                let randTime = new Date().getTime();
+                this.vsrc = "/vcode?rand="+randTime;
             }
         }
     }

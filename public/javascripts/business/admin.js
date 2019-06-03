@@ -37,7 +37,6 @@ vInst = new Vue({
         totalCount: 0,
         currentPage: 1,
         reqDataSet: [],
-        merchantName: "",
         requestBeginDate: "",
         requestEndDate: "",
 
@@ -108,9 +107,6 @@ vInst = new Vue({
                 offset: (pageNumber - 1) * 10,
                 randstamp: rand
             };
-            if (this.merchantName != "") {
-                obParas.paraName = this.merchantName;
-            }
             if (this.requestBeginDate != "") {
                 obParas.paraBeginDate = this.requestBeginDate;
             }

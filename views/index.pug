@@ -25,7 +25,8 @@ block content
       el-col(:span="8" style="text-align:left;")
         el-input(v-model="vcode",placeholder="请输入验证码", maxlength="5" style="width:120px;margin-left:15px;",type="input")
       el-col(:span="12" style="text-align:left;")
-        el-image(style="height:40px", src="/vcode" fit="contain")
+        a(src="#" @click="refreshImg")
+          el-image(style="height:40px", :src="vsrc" fit="contain" id="vlimage")
     el-row(style="margin-top:0.5em;")
       el-col(:span="24" style="text-align:center;")
         el-button(@click="login") 登录

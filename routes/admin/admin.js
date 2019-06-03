@@ -35,7 +35,7 @@ router.post('/resetpwd', function (req, res, next) {
         res.send("{rs:'FAILED'}");
         return;
     }
-    console.warn("admin %s is modifing password now.", req.session.loginAdmin.adminId);
+    console.warn("merchant is %s,admin %s is modifing password now.",req.session.loginAdmin.merchantId, req.session.loginAdmin.adminId);
     let jsonRs = {};
     jsonRs.rs = 'OK';
 
@@ -44,8 +44,8 @@ router.post('/resetpwd', function (req, res, next) {
     console.log("[SQL Param]<oldPwd> is %s", oldPwd);
     console.log("[SQL Param]<newPwd> is %s", newPwd);
 
-    let updateSQL = "UPDATE admin SET user_pwd=? WHERE user_id=? and user_pwd=?";
-    let params = [newPwd, req.session.loginAdmin.adminId, oldPwd];
+    let updateSQL = "UPDATE merchant_admin SET admin_pwd=? WHERE admin_id=? and admin_pwd=? and merchant_id=?";
+    let params = [newPwd, req.session.loginAdmin.adminId, oldPwd,req.session.loginAdmin.merchantId];
 
     dbUtil.execute(updateSQL, params, function (exeResult) {
         if(exeResult.affectedRows == 1){
@@ -66,20 +66,21 @@ router.get('/qryreqlist', function (req, res, next) {
     //2019-05-27T16:00:00.000Z
     //console.log(req.query.paraBeginDate);
     req.session.touch();
+
+    // 这里的查询都得加上商户id
+    let merchant_id = req.session.loginAdmin.merchantId;
+
     // 查明细列表
-    let qryString = "select a.req_id,b.merchant_name,date_format(a.req_time,'%Y-%m-%d %H:%i:%s') as req_time,a.raw_msg, a.rs_status from mo_command a inner join merchant b on a.merchant_id=b.merchant_id where 1=1";
-    let qryCount = "select count(1) as total from mo_command a inner join merchant b on a.merchant_id=b.merchant_id where 1=1";
+    let qryString = "select a.req_id, date_format(a.req_time,'%Y-%m-%d %H:%i:%s') as req_time,a.raw_msg, a.rs_status from mo_command a where a.merchant_id="+merchant_id+" ";
+    let qryCount = "select count(1) as total from mo_command a where a.merchant_id="+merchant_id+" ";
     let qryParams = [];
-    if (req.query.paraName && req.query.paraName != "") {
-        qryString += " and b.merchant_name like ? ";
-        qryCount += " and b.merchant_name like ? ";
-        qryParams.push("%" + req.query.paraName + "%");
-    }
+
     if (req.query.paraBeginDate && req.query.paraBeginDate != "") {
         qryString += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
         qryCount += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
         qryParams.push(req.query.paraBeginDate + " 00:00:00");
     }
+
     if (req.query.paraEndDate && req.query.paraEndDate != "") {
         qryString += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
         qryCount += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";

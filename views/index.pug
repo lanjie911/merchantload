@@ -1,0 +1,35 @@
+extends layout.pug
+
+block othercss
+  link(rel='stylesheet', href='/stylesheets/index.css')
+
+block content
+ 
+  div(id="maindoor" class="maindoor" onkeyup="keyLogin();")
+    el-row()
+      el-col(:span="24")
+        div(style="font-size:2em;text-align:center;margin-bottom:10px") 贷超平台商户管理后台
+    el-row(style="margin-top:0.8em;")
+      el-col(:span="4" style="text-align:right;")
+        div(style="line-height:3") 账号
+      el-col(:span="20" style="text-align:left;")
+        el-input(v-model="acc",placeholder="请输入用户名", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+    el-row(style="margin-top:5px;")
+      el-col(:span="4" style="text-align:right;")
+        div(style="line-height:3") 密码
+      el-col(:span="20" style="text-align:left;")
+        el-input(v-model="pwd",placeholder="请输入密码", maxlength="32" show-password,style="width:210px;margin-left:15px;",type="input")
+    el-row(style="margin-top:5px;")
+      el-col(:span="4" style="text-align:right;")
+        div(style="line-height:3") 验证码
+      el-col(:span="8" style="text-align:left;")
+        el-input(v-model="vcode",placeholder="请输入验证码", maxlength="5" style="width:120px;margin-left:15px;",type="input")
+      el-col(:span="12" style="text-align:left;")
+        el-image(style="height:40px", src="/vcode" fit="contain")
+    el-row(style="margin-top:0.5em;")
+      el-col(:span="24" style="text-align:center;")
+        el-button(@click="login") 登录
+        el-button(@click="reset") 重置
+ 
+  script(src='/javascripts/business/index.js')
+

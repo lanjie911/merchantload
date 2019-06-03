@@ -1,0 +1,12 @@
+body {
+    background: url(/images/abg.jpg) no-repeat;
+}
+
+.maindoor {
+    width:400px;
+    height:300px;
+    margin:auto;
+    position:absolute;
+    left:0;
+    right:0
+}

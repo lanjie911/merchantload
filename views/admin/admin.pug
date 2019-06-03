@@ -24,7 +24,7 @@ block content
                             el-menu-item(index="2-2" @click="gofunc(2)") 用户管理
                             el-menu-item(index="2-3" @click="gofunc(3)") 重置密码
             el-main(v-bind:style="{height: mainHeight + 'px'}")
-                el-tabs(v-model="activeTabIndex" type="card" closable=true @tab-remove="tabRemoved")
+                el-tabs(v-model="activeTabIndex" type="card" closable=true @tab-remove="tabRemoved" @tab-click="tabClicked")
                     el-tab-pane(label="进件明细" name="0")
                         <!--如果不绑定value-format，那么这个控件默认输出的是Date对象-->
                         el-date-picker(align="right" type="date" placeholder="选择开始日期" class="datepicker" v-model="requestBeginDate" value-format="yyyy-MM-dd")
@@ -39,7 +39,22 @@ block content
                         el-pagination(:current-page="currentPage" :page-size="pageSize" layout="total, prev, pager, next, jumper" :total="totalCount" class="rqpagination" @current-change="goPage")
                     el-tab-pane(label="短信发送" name="1") 老板你需要什么样的报表啊
                     el-tab-pane(label="用户管理" name="2")
-                        span 目前手工插入后台管理用户也是可以的啊
+                        el-table(border style="width:100%" :data="merAdminDataSet")
+                            el-table-column(label="用户编号" width="80" class="column-title" prop="admin_id")
+                            el-table-column(label="用户姓名" width="100" class="column-title" prop="admin_name")
+                            el-table-column(label="用户手机" width="120" class="column-title" prop="admin_mobile")
+                            el-table-column(label="用户账号" width="120" class="column-title" prop="admin_acc")
+                            el-table-column(label="创建时间" width="180" class="column-title" prop="created_time")
+                            el-table-column(label="修改时间" width="180" class="column-title" prop="modified_time")
+                            el-table-column(label="是否超管" width="80" class="column-title" prop="is_root")
+                            el-table-column(label="当前状态" width="80" class="column-title" prop="admin_status")
+                            el-table-column(label="操作" class="column-title")
+                                template(slot-scope="scope")
+                                    el-button(@click="changeAdminState(scope.$index, scope.row,1)") 启用
+                                    el-button(@click="changeAdminState(scope.$index, scope.row,0)") 禁用
+                                    el-button() 修改信息
+                                    el-button() 删除
+                        el-pagination(:current-page="meradmcurrentPage" :page-size="meradmpageSize" layout="total, prev, pager, next, jumper" :total="meradmTotalCount" class="rqpagination" @current-change="goMerAdmPage")
                     el-tab-pane(label="重置密码" name="3")
                         el-row(class="rowclaz")
                             el-col(:span="24")

@@ -119,4 +119,110 @@ router.get('/qryreqlist', function (req, res, next) {
     dbUtil.query(qryString, qryParams, callbackfunc);
 });
 
+// 查询管理员列表
+router.get('/qryadminlist', function (req, res, next) {
+    if (!req.session.loginAdmin) {
+        res.send("{rs:'FAILED'}");
+        return;
+    }
+    //2019-05-27T16:00:00.000Z
+    //console.log(req.query.paraBeginDate);
+    req.session.touch();
+
+    // 这里的查询都得加上商户id
+    let merchant_id = req.session.loginAdmin.merchantId;
+
+    // 查明细列表
+    let qryString = "select a.merchant_id, a.admin_name, a.admin_id, a.admin_mobile, a.admin_acc, ";
+    qryString += "date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time, date_format(a.modified_time,'%Y-%m-%d %H:%i:%s') as modified_time, ";
+    qryString += "a.is_root, ";
+    qryString += "a.admin_status ";
+    qryString += "from merchant_admin a where a.merchant_id="+merchant_id+" ";
+    let qryCount = "select count(1) as total from merchant_admin a where a.merchant_id="+merchant_id+" ";
+    let qryParams = [];
+
+    if (req.query.paraBeginDate && req.query.paraBeginDate != "") {
+        qryString += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryCount += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryParams.push(req.query.paraBeginDate + " 00:00:00");
+    }
+
+    if (req.query.paraEndDate && req.query.paraEndDate != "") {
+        qryString += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryCount += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryParams.push(req.query.paraEndDate + " 23:59:59");
+    }
+    qryString += " limit " + req.query.limit + " offset " + req.query.offset;
+    console.info("[SQL FORMATTER] : %s", qryString);
+    console.info("[SQL FORMATTER] : %s", qryCount);
+    let rsArray = [];
+    let jsonRs = {};
+    jsonRs.rs = "ERROR";
+
+    // 回调深渊开始
+
+    // 查总数的回调
+    let callbackfunc2 = function (rs, fds) {
+        if (rs && rs.length > 0) {
+            jsonRs.total = rs[0].total;
+            jsonRs.rs = "OK";
+        }
+        res.json(jsonRs);
+    }
+
+    // 查明细的回调
+    let callbackfunc = function (rs, fds) {
+        if (rs && rs.length > 0) {
+            for (let idx = 0; idx < rs.length; idx++) {
+                let record = rs[idx];
+                rsArray.push(record);
+            }
+            jsonRs.rsArray = rsArray;
+            dbUtil.query(qryCount, qryParams, callbackfunc2);
+        }
+    };
+
+    dbUtil.query(qryString, qryParams, callbackfunc);
+});
+
+// 改变管理员状态
+router.get('/changeadminstate', function (req, res, next) {
+    if (!req.session.loginAdmin) {
+        res.send("{rs:'ERROR'}");
+        return;
+    }
+
+    req.session.touch();
+
+   
+
+
+
+    let jsonRs = {};
+    jsonRs.rs = 'OK';
+
+    // 只有超管才能修改别人的状态
+    if(req.session.loginAdmin.isRoot != 1){
+        jsonRs.rs = 'ERROR';
+        jsonRs.text = "只有超管才能修改其他管理员的状态";
+        res.json(jsonRs);
+        return;
+    }
+
+     // 这里的查询都得加上商户id
+     console.warn("merchant is %s,admin %s is modifing state to %d.",req.session.loginAdmin.merchantId, req.query.adminId,req.query.nst);
+
+    let updateSQL = "UPDATE merchant_admin SET admin_status=?, modified_time=now() WHERE admin_id=? and merchant_id=?";
+    let params = [req.query.nst, req.query.adminId, req.session.loginAdmin.merchantId];
+
+    dbUtil.execute(updateSQL, params, function (exeResult) {
+        if(exeResult.affectedRows == 1){
+            jsonRs.rs = 'OK';
+        }else{
+            jsonRs.rs = 'ERROR';
+        }
+        res.json(jsonRs);
+    });
+});
+
 module.exports = router;

@@ -40,6 +40,13 @@ vInst = new Vue({
         requestBeginDate: "",
         requestEndDate: "",
 
+        //管理员属性
+        isLoadAdmData: false,
+        merAdminDataSet: [],
+        meradmcurrentPage: 1,
+        meradmpageSize: 10,
+        meradmTotalCount: 0,
+
         //修改密码数据
         oldPwd: "",
         newPwd: "",
@@ -81,7 +88,19 @@ vInst = new Vue({
             document.getElementById("tab-" + idx).style.display = "";
             document.getElementById("pane-" + idx).style.display = "";
             document.getElementById("tab-" + idx).click();
+
         },
+        tabClicked: function (tabObj) {
+            let tabIdx = tabObj.index;
+            // 加载用户列表数据
+            if (tabIdx == 2) {
+                if (this.isLoadAdmData) {
+                    return;
+                }
+                this.qryAdminList(1);
+            }
+        },
+        // 请求列表翻页
         goPage: function (pageNumber) {
             //console.log(pageNumber);
             this.qryRequestList(pageNumber);
@@ -97,6 +116,7 @@ vInst = new Vue({
             this.requestBeginDate = "";
             this.requestEndDate = "";
         },
+        // 请求列表条件查询
         qryWithCondition: function () {
             this.qryRequestList(1);
         },
@@ -116,6 +136,52 @@ vInst = new Vue({
             axios.get("admin/qryreqlist", {
                 params: obParas
             }).then(handleReqQryResult).catch(resp => {
+                console.log('请求失败：' + resp.status + ',' + resp.statusText);
+            });
+        },
+        qryAdminList: function (pageNumber) {
+            let rand = new Date().getTime();
+            let obParas = {
+                limit: 10,
+                offset: (pageNumber - 1) * 10,
+                randstamp: rand
+            };
+            axios.get("admin/qryadminlist", {
+                params: obParas
+            }).then(function (resp) {
+                let rsdata = resp.data;
+                if (rsdata.rs == "ERROR") {
+                    alert("服务器内部错误");
+                    return [];
+                }
+                if (rsdata.rs == "OK") {
+                    if (!rsdata.rsArray) {
+                        alert("没有查询到数据");
+                        return;
+                    }
+                    if (rsdata.rsArray.length == 0) {
+                        alert("没有查询到数据");
+                        return;
+                    }
+                    for (let p = 0; p < rsdata.rsArray.length; p++) {
+                        if (rsdata.rsArray[p].is_root == 1) {
+                            rsdata.rsArray[p].is_root = "是";
+                        } else {
+                            rsdata.rsArray[p].is_root = "否";
+                        }
+                        if (rsdata.rsArray[p].admin_status == 1) {
+                            rsdata.rsArray[p].admin_status = "正常";
+                        } else {
+                            rsdata.rsArray[p].admin_status = "禁用";
+                        }
+                    }
+                    vInst.merAdminDataSet = rsdata.rsArray;
+                    vInst.meradmTotalCount = rsdata.total;
+                    return;
+                }
+                alert("未知错误");
+                return [];
+            }).catch(resp => {
                 console.log('请求失败：' + resp.status + ',' + resp.statusText);
             });
         },
@@ -144,6 +210,34 @@ vInst = new Vue({
                 newPwd: newPwd
             }).then(function (resp) {
                 alert(resp.data.rs);
+            }).catch(resp => {
+                console.log('请求失败：' + resp.status + ',' + resp.statusText);
+            });
+        },
+
+        //管理员管理方法
+        goMerAdmPage: function (pageNumber) {
+            this.qryAdminList(pageNumber);
+        },
+        // 启用/禁用
+        changeAdminState: function (idx, row, nst) {
+            let adminId = row.admin_id;
+            let rand = new Date().getTime();
+            let obParas = {
+                adminId: adminId,
+                nst: nst,
+                randstamp: rand
+            };
+            axios.get("admin/changeadminstate", {
+                params: obParas
+            }).then(function (resp) {
+                let rsdata = resp.data;
+                if (rsdata.rs == "ERROR") {
+                    alert(rsdata.text);
+                    return [];
+                }
+                alert(rsdata.rs);
+                vInst.goMerAdmPage(1);
             }).catch(resp => {
                 console.log('请求失败：' + resp.status + ',' + resp.statusText);
             });

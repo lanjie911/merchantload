@@ -50,7 +50,16 @@ vInst = new Vue({
         //修改密码数据
         oldPwd: "",
         newPwd: "",
-        newPwdAffirm: ""
+        newPwdAffirm: "",
+
+        //管理员弹出窗体
+        dialogVisible: false,
+        beanAdmStat: true,
+        beanAdmName: "",
+        beanAdmMobile: "",
+        beanAdmAcc: "",
+        beanAdmPwd: "",
+        oper: "创建管理员"
     },
     created: function () {
         this.uiHeight = document.documentElement.clientHeight;
@@ -241,6 +250,57 @@ vInst = new Vue({
             }).catch(resp => {
                 console.log('请求失败：' + resp.status + ',' + resp.statusText);
             });
+        },
+        // 增加管理员
+        addAdmin: function () {
+            let vName = vInst.beanAdmName
+            let vAcc = vInst.beanAdmAcc;
+            let vPwd = vInst.beanAdmPwd;
+            let vMobile = vInst.beanAdmMobile;
+            let vState = vInst.beanAdmStat;
+
+            if (vName == "" || vName == "请输入管理员姓名") {
+                alert("请输入管理员姓名");
+                return;
+            }
+            if (vAcc == "" || vAcc == "请输入管理员账号") {
+                alert("请输入管理员账号");
+                return;
+            }
+            if (vPwd == "" || vPwd == "请输入管理员密码") {
+                alert("请输入管理员密码");
+                return;
+            }
+            
+            //here we need a ajax req
+            axios.post("admin/addadmin", {
+                vname:vName,
+                acc: vAcc,
+                pwd: vPwd,
+                mobile: vMobile,
+                state: vState
+            }
+            ).then(function (resp) {
+                console.log(resp.data);
+                let rsdata = resp.data;
+                if (rsdata.rs == "ERROR") {
+                    alert(rsdata.text);
+                    return;
+                }
+                if (rsdata.rs == "OK") {
+                    alert("创建管理员成功");
+                    vInst.dialogVisible = false;
+                    vInst.goMerAdmPage(1);
+                    return;
+                }
+                alert("未知错误");
+                return;
+            }).catch(resp => {
+                console.log('请求失败：' + resp.status + ',' + resp.statusText);
+            });
+        },
+        showAddAdminDialog: function(){
+            this.dialogVisible = true;
         }
     }
 });

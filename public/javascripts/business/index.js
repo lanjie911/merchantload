@@ -29,6 +29,7 @@ let business = {
             let rsdata = resp.data;
             if (rsdata.rs == "LoginError") {
                 alert("账号或密码或验证码错误");
+                vIns.refreshImg();
                 return;
             }
             if (rsdata.rs == "LoginOK") {

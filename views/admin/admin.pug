@@ -15,7 +15,7 @@ block content
                             span 数据一览
                         el-menu-item-group
                             el-menu-item(index="1-1" @click="gofunc(0)") 进件明细
-                            el-menu-item(index="1-2" @click="gofunc(1)") 短信发送
+                            el-menu-item(index="1-2" @click="gofunc(1)") 短信明细
                     el-submenu(index="2")
                         template(slot="title")
                             i(class="el-icon-setting")
@@ -24,6 +24,42 @@ block content
                             el-menu-item(index="2-2" @click="gofunc(2)") 用户管理
                             el-menu-item(index="2-3" @click="gofunc(3)") 重置密码
             el-main(v-bind:style="{height: mainHeight + 'px'}")
+                el-dialog(:title="oper",:visible.sync="dialogVisible",width="25%")
+                    el-row
+                        el-col(:span="6" style="text-align:right;")
+                            div(style="line-height:3") 姓名
+                        el-col(:span="18" style="text-align:left;")
+                            el-input(v-model="beanAdmName",placeholder="请输入管理员姓名", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+                    el-row
+                    el-row
+                        el-col(:span="6" style="text-align:right;")
+                            div(style="line-height:3") 手机
+                        el-col(:span="18" style="text-align:left;")
+                            el-input(v-model="beanAdmMobile",placeholder="请输入管理员手机", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+                    el-row
+                    el-row
+                        el-col(:span="6" style="text-align:right;")
+                            div(style="line-height:3") 账号
+                        el-col(:span="18" style="text-align:left;")
+                            el-input(v-model="beanAdmAcc",placeholder="请输入管理员账号", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+                    el-row
+                    el-row
+                        el-col(:span="6" style="text-align:right;")
+                            div(style="line-height:3") 密码
+                        el-col(:span="18" style="text-align:left;")
+                            el-input(v-model="beanAdmPwd",placeholder="请输入管理员密码", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+                    el-row
+                    el-row
+                        el-col(:span="6" style="text-align:right;")
+                            div(style="line-height:3") 状态
+                        el-col(:span="18" style="text-align:left;")
+                            el-checkbox(v-model="beanAdmStat",style="margin-left:15px;line-height:3",chec) 启用
+                    el-row
+                    el-row
+                        el-col(:span="12" style="text-align:right;")
+                            el-button(@click="addAdmin" style="margin-right:10px;") 确定
+                        el-col(:span="12" style="text-align:left;")
+                            el-button(@click="dialogVisible=false" style="margin-left:5px;") 取消
                 el-tabs(v-model="activeTabIndex" type="card" closable=true @tab-remove="tabRemoved" @tab-click="tabClicked")
                     el-tab-pane(label="进件明细" name="0")
                         <!--如果不绑定value-format，那么这个控件默认输出的是Date对象-->
@@ -37,8 +73,9 @@ block content
                             el-table-column(label="报文信息" prop="raw_msg")
                             el-table-column(label="应答结果" width="180" class="column-title" prop="rs_status")
                         el-pagination(:current-page="currentPage" :page-size="pageSize" layout="total, prev, pager, next, jumper" :total="totalCount" class="rqpagination" @current-change="goPage")
-                    el-tab-pane(label="短信发送" name="1") 老板你需要什么样的报表啊
+                    el-tab-pane(label="短信明细" name="1") 老板你需要什么样的报表啊
                     el-tab-pane(label="用户管理" name="2")
+                        el-button(icon="el-icon-circle-plus-outline" @click="showAddAdminDialog()" style="margin-bottom:5px;") 增加管理员
                         el-table(border style="width:100%" :data="merAdminDataSet")
                             el-table-column(label="用户编号" width="80" class="column-title" prop="admin_id")
                             el-table-column(label="用户姓名" width="100" class="column-title" prop="admin_name")

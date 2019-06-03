@@ -273,4 +273,62 @@ router.post('/addadmin', function (req, res, next) {
     });
 });
 
+// 修改管理员
+router.post('/modadmin', function (req, res, next) {
+    if (!req.session.loginAdmin) {
+        res.send("{rs:'ERROR'}");
+        return;
+    }
+
+    req.session.touch();
+
+    let jsonRs = {};
+    jsonRs.rs = 'OK';
+
+    // 只有超管才能创建管理员
+    if (req.session.loginAdmin.isRoot != 1) {
+        jsonRs.rs = 'ERROR';
+        jsonRs.text = "只有超管才能修改管理员";
+        res.json(jsonRs);
+        return;
+    }
+
+    // 这里的查询都得加上商户id
+    console.info("[MERCHANT Modify Admin]");
+    console.info(req.body);
+
+    let updateSQL = "UPDATE merchant_admin SET admin_name=?, ";
+    updateSQL += "admin_mobile=?, ";
+    updateSQL += "admin_acc=?, ";
+    updateSQL += "admin_pwd=?, ";
+    updateSQL += "admin_status=?, ";
+    updateSQL += "modified_time=NOW() ";
+    updateSQL += "WHERE merchant_id=? and admin_id=?"
+
+    let params = [];
+    params.push(req.body.vname);
+    params.push(req.body.mobile);
+    params.push(req.body.acc);
+    params.push(md5Util.md5(req.body.pwd));
+    params.push(req.body.state?1:0);
+    params.push(req.session.loginAdmin.merchantId);
+    params.push(req.body.adminid);
+
+    dbUtil.update(updateSQL, params, function (exeResult) {
+        if (exeResult.affectedRows == 1) {
+            jsonRs.rs = 'OK';
+        } else {
+            jsonRs.rs = 'ERROR';
+        }
+        res.json(jsonRs);
+    },function(err){
+        let code = err.code;
+        if("ER_DUP_ENTRY" == code){
+            jsonRs.text = "账号名已经存在，请更换一个";
+            jsonRs.rs = 'ERROR';
+            res.json(jsonRs);
+        }
+    });
+});
+
 module.exports = router;

@@ -24,7 +24,7 @@ block content
                             el-menu-item(index="2-2" @click="gofunc(2)") 用户管理
                             el-menu-item(index="2-3" @click="gofunc(3)") 重置密码
             el-main(v-bind:style="{height: mainHeight + 'px'}")
-                el-dialog(:title="oper",:visible.sync="dialogVisible",width="25%")
+                el-dialog(:title="oper",:visible.sync="dialogVisible",width="25%",:before-close="beforeCancelAddAdmin")
                     el-row
                         el-col(:span="6" style="text-align:right;")
                             div(style="line-height:3") 姓名
@@ -47,7 +47,7 @@ block content
                         el-col(:span="6" style="text-align:right;")
                             div(style="line-height:3") 密码
                         el-col(:span="18" style="text-align:left;")
-                            el-input(v-model="beanAdmPwd",placeholder="请输入管理员密码", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+                            el-input(v-model="beanAdmPwd",placeholder="请输入管理员密码", show-password, maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
                     el-row
                     el-row
                         el-col(:span="6" style="text-align:right;")
@@ -57,9 +57,9 @@ block content
                     el-row
                     el-row
                         el-col(:span="12" style="text-align:right;")
-                            el-button(@click="addAdmin" style="margin-right:10px;") 确定
+                            el-button(@click="editAdmin" style="margin-right:10px;") 确定
                         el-col(:span="12" style="text-align:left;")
-                            el-button(@click="dialogVisible=false" style="margin-left:5px;") 取消
+                            el-button(@click="cancelAddAdmin()" style="margin-left:5px;") 取消
                 el-tabs(v-model="activeTabIndex" type="card" closable=true @tab-remove="tabRemoved" @tab-click="tabClicked")
                     el-tab-pane(label="进件明细" name="0")
                         <!--如果不绑定value-format，那么这个控件默认输出的是Date对象-->
@@ -89,7 +89,7 @@ block content
                                 template(slot-scope="scope")
                                     el-button(@click="changeAdminState(scope.$index, scope.row,1)") 启用
                                     el-button(@click="changeAdminState(scope.$index, scope.row,0)") 禁用
-                                    el-button() 修改信息
+                                    el-button(@click="showModifyAdminDialog(scope.$index, scope.row)") 修改信息
                                     el-button() 删除
                         el-pagination(:current-page="meradmcurrentPage" :page-size="meradmpageSize" layout="total, prev, pager, next, jumper" :total="meradmTotalCount" class="rqpagination" @current-change="goMerAdmPage")
                     el-tab-pane(label="重置密码" name="3")

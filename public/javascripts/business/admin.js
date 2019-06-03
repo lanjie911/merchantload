@@ -9,14 +9,6 @@ let handleReqQryResult = function (resp) {
         return [];
     }
     if (rsdata.rs == "OK") {
-        if (!rsdata.rsArray) {
-            alert("没有查询到数据");
-            return;
-        }
-        if (rsdata.rsArray.length == 0) {
-            alert("没有查询到数据");
-            return;
-        }
         vInst.reqDataSet = rsdata.rsArray;
         vInst.totalCount = rsdata.total;
         return;
@@ -60,7 +52,16 @@ vInst = new Vue({
         beanAdmAcc: "",
         beanAdmPwd: "",
         oper: "创建管理员",
-        currentSelectedAdminId: 0
+        currentSelectedAdminId: 0,
+
+        //短信的字段
+        smsDataSet: [],
+        smsBeginDate: "",
+        smsEndDate: "",
+        smsPageSize: 10,
+        smsCurrentPage: 1,
+        smsTotalCount: 0,
+        isLoadSmsData: false
     },
     created: function () {
         this.uiHeight = document.documentElement.clientHeight;
@@ -108,6 +109,15 @@ vInst = new Vue({
                     return;
                 }
                 this.qryAdminList(1);
+                return;
+            }
+            // 加载短信列表
+            if (tabIdx == 1) {
+                if (this.isLoadSmsData) {
+                    return;
+                }
+                this.qrySmsList(1);
+                return;
             }
         },
         // 请求列表翻页
@@ -388,6 +398,51 @@ vInst = new Vue({
         showAddAdminDialog: function () {
             this.oper = "创建管理员";
             this.dialogVisible = true;
-        }
+        },
+
+        //短信的功能
+        qrySmsWithCondition: function () {
+            this.qrySmsList(1);
+        },
+        clearSmsSearchConditions: function () {
+            this.smsBeginDate = "";
+            this.smsEndDate = "";
+        },
+        goSmsPage: function (pageNumber) {
+            this.qrySmsList(pageNumber);
+        },
+        qrySmsList: function (pageNumber) {
+            let rand = new Date().getTime();
+            let obParas = {
+                limit: 10,
+                offset: (pageNumber - 1) * 10,
+                randstamp: rand
+            };
+            if (this.smsBeginDate != "") {
+                obParas.paraBeginDate = this.smsBeginDate;
+            }
+            if (this.smsEndDate != "") {
+                obParas.paraEndDate = this.smsEndDate;
+            }
+            axios.get("admin/qrysmslist", {
+                params: obParas
+            }).then(function (resp) {
+                let rsdata = resp.data;
+                if (rsdata.rs == "ERROR") {
+                    alert("服务器内部错误");
+                    return [];
+                }
+                if (rsdata.rs == "OK") {
+                    console.log(rsdata.rsArray);
+                    vInst.smsDataSet = rsdata.rsArray;
+                    vInst.smsTotalCount = rsdata.total;
+                    return;
+                }
+                alert("未知错误");
+                return [];
+            }).catch(resp => {
+                console.log('请求失败：' + resp.status + ',' + resp.statusText);
+            });
+        },
     }
 });

@@ -73,7 +73,17 @@ block content
                             el-table-column(label="报文信息" prop="raw_msg")
                             el-table-column(label="应答结果" width="180" class="column-title" prop="rs_status")
                         el-pagination(:current-page="currentPage" :page-size="pageSize" layout="total, prev, pager, next, jumper" :total="totalCount" class="rqpagination" @current-change="goPage")
-                    el-tab-pane(label="短信明细" name="1") 老板你需要什么样的报表啊
+                    el-tab-pane(label="短信明细" name="1")
+                        el-date-picker(align="right" type="date" placeholder="选择开始日期" class="datepicker" v-model="smsBeginDate" value-format="yyyy-MM-dd")
+                        el-date-picker(align="right" type="date" placeholder="选择结束日期" class="datepicker" v-model="smsEndDate" value-format="yyyy-MM-dd")
+                        el-button(icon="el-icon-search" @click="qrySmsWithCondition()") 查询
+                        el-button(icon="el-icon-delete" @click="clearSmsSearchConditions()") 清除查询条件
+                        el-table(border style="width:100%" :data="smsDataSet")
+                            el-table-column(label="短信编号" width="180" class="column-title" prop="req_id")
+                            el-table-column(label="发送时间" width="180" class="column-title" prop="req_time")
+                            el-table-column(label="报文信息" prop="raw_msg")
+                            el-table-column(label="下行状态" width="180" class="column-title" prop="rs_status")
+                        el-pagination(:current-page="smsCurrentPage" :page-size="smsPageSize" layout="total, prev, pager, next, jumper" :total="smsTotalCount" class="rqpagination" @current-change="goSmsPage")
                     el-tab-pane(label="用户管理" name="2")
                         el-button(icon="el-icon-circle-plus-outline" @click="showAddAdminDialog()" style="margin-bottom:5px;") 增加管理员
                         el-table(border style="width:100%" :data="merAdminDataSet")

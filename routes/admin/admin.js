@@ -113,6 +113,10 @@ router.get('/qryreqlist', function (req, res, next) {
             }
             jsonRs.rsArray = rsArray;
             dbUtil.query(qryCount, qryParams, callbackfunc2);
+        } else {
+            jsonRs.rs = "OK";
+            jsonRs.rsArray = rsArray;
+            res.json(jsonRs);
         }
     };
 
@@ -254,7 +258,7 @@ router.post('/addadmin', function (req, res, next) {
     params.push(req.body.mobile);
     params.push(req.body.acc);
     params.push(md5Util.md5(req.body.pwd));
-    params.push(req.body.state?1:0);
+    params.push(req.body.state ? 1 : 0);
 
     dbUtil.insert(updateSQL, params, function (exeResult) {
         if (exeResult.affectedRows == 1) {
@@ -263,9 +267,9 @@ router.post('/addadmin', function (req, res, next) {
             jsonRs.rs = 'ERROR';
         }
         res.json(jsonRs);
-    },function(err){
+    }, function (err) {
         let code = err.code;
-        if("ER_DUP_ENTRY" == code){
+        if ("ER_DUP_ENTRY" == code) {
             jsonRs.text = "账号名已经存在，请更换一个";
             jsonRs.rs = 'ERROR';
             res.json(jsonRs);
@@ -310,7 +314,7 @@ router.post('/modadmin', function (req, res, next) {
     params.push(req.body.mobile);
     params.push(req.body.acc);
     params.push(md5Util.md5(req.body.pwd));
-    params.push(req.body.state?1:0);
+    params.push(req.body.state ? 1 : 0);
     params.push(req.session.loginAdmin.merchantId);
     params.push(req.body.adminid);
 
@@ -321,14 +325,81 @@ router.post('/modadmin', function (req, res, next) {
             jsonRs.rs = 'ERROR';
         }
         res.json(jsonRs);
-    },function(err){
+    }, function (err) {
         let code = err.code;
-        if("ER_DUP_ENTRY" == code){
+        if ("ER_DUP_ENTRY" == code) {
             jsonRs.text = "账号名已经存在，请更换一个";
             jsonRs.rs = 'ERROR';
             res.json(jsonRs);
         }
     });
+});
+
+// 查询短信列表
+router.get('/qrysmslist', function (req, res, next) {
+    if (!req.session.loginAdmin) {
+        res.send("{rs:'FAILED'}");
+        return;
+    }
+    //2019-05-27T16:00:00.000Z
+    //console.log(req.query.paraBeginDate);
+    req.session.touch();
+
+    // 这里的查询都得加上商户id
+    let merchant_id = req.session.loginAdmin.merchantId;
+
+    // 查明细列表
+    let qryString = "select a.req_id, a.raw_msg, a.rs_status, ";
+    qryString += "date_format(a.req_time,'%Y-%m-%d %H:%i:%s') as req_time ";
+    qryString += "from mt_command a where a.merchant_id=" + merchant_id + " ";
+    let qryCount = "select count(1) as total from mt_command a where a.merchant_id=" + merchant_id + " ";
+    let qryParams = [];
+
+    if (req.query.paraBeginDate && req.query.paraBeginDate != "") {
+        qryString += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryCount += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryParams.push(req.query.paraBeginDate + " 00:00:00");
+    }
+
+    if (req.query.paraEndDate && req.query.paraEndDate != "") {
+        qryString += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryCount += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryParams.push(req.query.paraEndDate + " 23:59:59");
+    }
+    qryString += " limit " + req.query.limit + " offset " + req.query.offset;
+    console.info("[SQL FORMATTER] : %s", qryString);
+    console.info("[SQL FORMATTER] : %s", qryCount);
+    let rsArray = [];
+    let jsonRs = {};
+    jsonRs.rs = "ERROR";
+
+    // 回调深渊开始
+
+    // 查总数的回调
+    let callbackfunc2 = function (rs, fds) {
+        if (rs && rs.length > 0) {
+            jsonRs.total = rs[0].total;
+            jsonRs.rs = "OK";
+        }
+        res.json(jsonRs);
+    }
+
+    // 查明细的回调
+    let callbackfunc = function (rs, fds) {
+        if (rs && rs.length > 0) {
+            for (let idx = 0; idx < rs.length; idx++) {
+                let record = rs[idx];
+                rsArray.push(record);
+            }
+            jsonRs.rsArray = rsArray;
+            dbUtil.query(qryCount, qryParams, callbackfunc2);
+        } else {
+            jsonRs.rs = "OK"
+            res.json(jsonRs);
+        }
+    };
+
+    dbUtil.query(qryString, qryParams, callbackfunc);
 });
 
 module.exports = router;

@@ -402,4 +402,80 @@ router.get('/qrysmslist', function (req, res, next) {
     dbUtil.query(qryString, qryParams, callbackfunc);
 });
 
+
+// 查询验证码列表
+router.get('/qryvcodelist', function (req, res, next) {
+    if (!req.session.loginAdmin) {
+        res.send("{rs:'FAILED'}");
+        return;
+    }
+    //2019-05-27T16:00:00.000Z
+    //console.log(req.query.paraBeginDate);
+    req.session.touch();
+
+    // 这里的查询都得加上商户id
+    let merchant_id = req.session.loginAdmin.merchantId;
+
+    // 查明细列表
+    let qryString = "select a.mid, a.raw_msg, a.mobile, a.rs_stat, ";
+    qryString += "date_format(a.req_time,'%Y-%m-%d %H:%i:%s') as req_time ";
+    qryString += "from mt_vcode a where a.merchant_id=" + merchant_id + " ";
+    let qryCount = "select count(1) as total from mt_vcode a where a.merchant_id=" + merchant_id + " ";
+    let qryParams = [];
+
+    if (req.query.paraBeginDate && req.query.paraBeginDate != "") {
+        qryString += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryCount += " and a.req_time >= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryParams.push(req.query.paraBeginDate + " 00:00:00");
+    }
+
+    if (req.query.paraEndDate && req.query.paraEndDate != "") {
+        qryString += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryCount += " and a.req_time <= str_to_date(?,'%Y-%m-%d %H:%i:%s') ";
+        qryParams.push(req.query.paraEndDate + " 23:59:59");
+    }
+
+    if (req.query.paraMobile && req.query.paraMobile != "") {
+        qryString += " and a.mobile = ? ";
+        qryCount += " and a.mobile = ? ";
+        qryParams.push(req.query.paraMobile);
+    }
+
+
+    qryString += " limit " + req.query.limit + " offset " + req.query.offset;
+    console.info("[SQL FORMATTER] : %s", qryString);
+    console.info("[SQL FORMATTER] : %s", qryCount);
+    let rsArray = [];
+    let jsonRs = {};
+    jsonRs.rs = "ERROR";
+
+    // 回调深渊开始
+
+    // 查总数的回调
+    let callbackfunc2 = function (rs, fds) {
+        if (rs && rs.length > 0) {
+            jsonRs.total = rs[0].total;
+            jsonRs.rs = "OK";
+        }
+        res.json(jsonRs);
+    }
+
+    // 查明细的回调
+    let callbackfunc = function (rs, fds) {
+        if (rs && rs.length > 0) {
+            for (let idx = 0; idx < rs.length; idx++) {
+                let record = rs[idx];
+                rsArray.push(record);
+            }
+            jsonRs.rsArray = rsArray;
+            dbUtil.query(qryCount, qryParams, callbackfunc2);
+        } else {
+            jsonRs.rs = "OK"
+            res.json(jsonRs);
+        }
+    };
+
+    dbUtil.query(qryString, qryParams, callbackfunc);
+});
+
 module.exports = router;

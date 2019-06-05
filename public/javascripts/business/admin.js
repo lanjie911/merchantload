@@ -54,14 +54,24 @@ vInst = new Vue({
         oper: "创建管理员",
         currentSelectedAdminId: 0,
 
-        //短信的字段
+        //推广短信的字段
         smsDataSet: [],
         smsBeginDate: "",
         smsEndDate: "",
         smsPageSize: 10,
         smsCurrentPage: 1,
         smsTotalCount: 0,
-        isLoadSmsData: false
+        isLoadSmsData: false,
+
+        //验证码短信的字段
+        vcodeDataSet: [],
+        vcodeMobile: "",
+        vcodeBeginDate: "",
+        vcodeEndDate: "",
+        vcodePageSize: 10,
+        vcodeCurrentPage: 1,
+        vcodeTotalCount: 0,
+        isLoadVcodeData: false
     },
     created: function () {
         this.uiHeight = document.documentElement.clientHeight;
@@ -103,20 +113,31 @@ vInst = new Vue({
         },
         tabClicked: function (tabObj) {
             let tabIdx = tabObj.index;
-            // 加载用户列表数据
-            if (tabIdx == 2) {
-                if (this.isLoadAdmData) {
-                    return;
-                }
-                this.qryAdminList(1);
-                return;
-            }
-            // 加载短信列表
+            
+            // 加载推广短信列表
             if (tabIdx == 1) {
                 if (this.isLoadSmsData) {
                     return;
                 }
                 this.qrySmsList(1);
+                return;
+            }
+
+            // 加载验证码短信列表
+            if (tabIdx == 2) {
+                if (this.isLoadVcodeData) {
+                    return;
+                }
+                this.qryVcodeList(1);
+                return;
+            }
+
+            // 加载用户列表数据
+            if (tabIdx == 3) {
+                if (this.isLoadAdmData) {
+                    return;
+                }
+                this.qryAdminList(1);
                 return;
             }
         },
@@ -436,6 +457,55 @@ vInst = new Vue({
                     console.log(rsdata.rsArray);
                     vInst.smsDataSet = rsdata.rsArray;
                     vInst.smsTotalCount = rsdata.total;
+                    return;
+                }
+                alert("未知错误");
+                return [];
+            }).catch(resp => {
+                console.log('请求失败：' + resp.status + ',' + resp.statusText);
+            });
+        },
+
+        //验证码列表的功能
+        qryVcodeWithCondition: function () {
+            this.qryVcodeList(1);
+        },
+        clearVcodeSearchConditions: function () {
+            this.vcodeBeginDate = "";
+            this.vcodeEndDate = "";
+            this.vcodeMobile = "";
+        },
+        goVcodePage: function (pageNumber) {
+            this.qryVcodeList(pageNumber);
+        },
+        qryVcodeList: function (pageNumber) {
+            let rand = new Date().getTime();
+            let obParas = {
+                limit: 10,
+                offset: (pageNumber - 1) * 10,
+                randstamp: rand
+            };
+            if (this.vcodeBeginDate != "") {
+                obParas.paraBeginDate = this.vcodeBeginDate;
+            }
+            if (this.vcodeEndDate != "") {
+                obParas.paraEndDate = this.vcodeEndDate;
+            }
+            if (this.vcodeMobile != ""){
+                obParas.paraMobile = this.vcodeMobile;
+            }
+            axios.get("admin/qryvcodelist", {
+                params: obParas
+            }).then(function (resp) {
+                let rsdata = resp.data;
+                if (rsdata.rs == "ERROR") {
+                    alert("服务器内部错误");
+                    return [];
+                }
+                if (rsdata.rs == "OK") {
+                    console.log(rsdata.rsArray);
+                    vInst.vcodeDataSet = rsdata.rsArray;
+                    vInst.vcodeTotalCount = rsdata.total;
                     return;
                 }
                 alert("未知错误");

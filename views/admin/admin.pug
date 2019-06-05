@@ -15,14 +15,15 @@ block content
                             span 数据一览
                         el-menu-item-group
                             el-menu-item(index="1-1" @click="gofunc(0)") 进件明细
-                            el-menu-item(index="1-2" @click="gofunc(1)") 短信明细
+                            el-menu-item(index="1-2" @click="gofunc(1)") 推广明细
+                            el-menu-item(index="1-3" @click="gofunc(2)") 验证码明细
                     el-submenu(index="2")
                         template(slot="title")
                             i(class="el-icon-setting")
                             span 系统设置
                         el-menu-item-group
-                            el-menu-item(index="2-2" @click="gofunc(2)") 用户管理
-                            el-menu-item(index="2-3" @click="gofunc(3)") 重置密码
+                            el-menu-item(index="2-2" @click="gofunc(3)") 用户管理
+                            el-menu-item(index="2-3" @click="gofunc(4)") 重置密码
             el-main(v-bind:style="{height: mainHeight + 'px'}")
                 el-dialog(:title="oper",:visible.sync="dialogVisible",width="25%",:before-close="beforeCancelAddAdmin")
                     el-row
@@ -73,7 +74,7 @@ block content
                             el-table-column(label="报文信息" prop="raw_msg")
                             el-table-column(label="应答结果" width="180" class="column-title" prop="rs_status")
                         el-pagination(:current-page="currentPage" :page-size="pageSize" layout="total, prev, pager, next, jumper" :total="totalCount" class="rqpagination" @current-change="goPage")
-                    el-tab-pane(label="短信明细" name="1")
+                    el-tab-pane(label="推广明细" name="1")
                         el-date-picker(align="right" type="date" placeholder="选择开始日期" class="datepicker" v-model="smsBeginDate" value-format="yyyy-MM-dd")
                         el-date-picker(align="right" type="date" placeholder="选择结束日期" class="datepicker" v-model="smsEndDate" value-format="yyyy-MM-dd")
                         el-button(icon="el-icon-search" @click="qrySmsWithCondition()") 查询
@@ -84,7 +85,20 @@ block content
                             el-table-column(label="报文信息" prop="raw_msg")
                             el-table-column(label="下行状态" width="180" class="column-title" prop="rs_status")
                         el-pagination(:current-page="smsCurrentPage" :page-size="smsPageSize" layout="total, prev, pager, next, jumper" :total="smsTotalCount" class="rqpagination" @current-change="goSmsPage")
-                    el-tab-pane(label="用户管理" name="2")
+                    el-tab-pane(label="验证码明细" name="2")
+                        el-input(type="input" placeholder="请输入要查询的手机号码" maxlength=11 style="width:210px" v-model="vcodeMobile")
+                        el-date-picker(align="right" type="date" placeholder="选择开始日期" class="datepicker" v-model="vcodeBeginDate" value-format="yyyy-MM-dd")
+                        el-date-picker(align="right" type="date" placeholder="选择结束日期" class="datepicker" v-model="vcodeEndDate" value-format="yyyy-MM-dd")
+                        el-button(icon="el-icon-search" @click="qryVcodeWithCondition()") 查询
+                        el-button(icon="el-icon-delete" @click="clearSmsSearchConditions()") 清除查询条件
+                        el-table(border style="width:100%" :data="vcodeDataSet")
+                            el-table-column(label="短信编号" width="180" class="column-title" prop="mid")
+                            el-table-column(label="手机号"   width="180" class="column-title" prop="mobile")
+                            el-table-column(label="发送时间" width="180" class="column-title" prop="req_time")
+                            el-table-column(label="发送内容" prop="raw_msg")
+                            el-table-column(label="下行状态" width="180" class="column-title" prop="rs_stat")
+                        el-pagination(:current-page="vcodeCurrentPage" :page-size="vcodePageSize" layout="total, prev, pager, next, jumper" :total="vcodeTotalCount" class="rqpagination" @current-change="goSmsPage")
+                    el-tab-pane(label="用户管理" name="3")
                         el-button(icon="el-icon-circle-plus-outline" @click="showAddAdminDialog()" style="margin-bottom:5px;") 增加管理员
                         el-table(border style="width:100%" :data="merAdminDataSet")
                             el-table-column(label="用户编号" width="80" class="column-title" prop="admin_id")
@@ -102,7 +116,7 @@ block content
                                     el-button(@click="showModifyAdminDialog(scope.$index, scope.row)") 修改信息
                                     el-button() 删除
                         el-pagination(:current-page="meradmcurrentPage" :page-size="meradmpageSize" layout="total, prev, pager, next, jumper" :total="meradmTotalCount" class="rqpagination" @current-change="goMerAdmPage")
-                    el-tab-pane(label="重置密码" name="3")
+                    el-tab-pane(label="重置密码" name="4")
                         el-row(class="rowclaz")
                             el-col(:span="24")
                                 el-input(v-model="oldPwd",placeholder="请输入原始密码",show-password,style="width:300px;margin-left:15px;",type="input")

@@ -1,0 +1,36 @@
+el-dialog(:title="oper",:visible.sync="dialogVisible",width="25%",:before-close="beforeCancelAddAdmin")
+    el-row
+        el-col(:span="6" style="text-align:right;")
+            div(style="line-height:3") 姓名
+        el-col(:span="18" style="text-align:left;")
+            el-input(v-model="beanAdmName",placeholder="请输入管理员姓名", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+    el-row
+    el-row
+        el-col(:span="6" style="text-align:right;")
+            div(style="line-height:3") 手机
+        el-col(:span="18" style="text-align:left;")
+            el-input(v-model="beanAdmMobile",placeholder="请输入管理员手机", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+    el-row
+    el-row
+        el-col(:span="6" style="text-align:right;")
+            div(style="line-height:3") 账号
+        el-col(:span="18" style="text-align:left;")
+            el-input(v-model="beanAdmAcc",placeholder="请输入管理员账号", maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+    el-row
+    el-row
+        el-col(:span="6" style="text-align:right;")
+            div(style="line-height:3") 密码
+        el-col(:span="18" style="text-align:left;")
+            el-input(v-model="beanAdmPwd",placeholder="请输入管理员密码", show-password, maxlength="32" style="width:210px;margin-left:15px;",type="input" autofocus="true")
+    el-row
+    el-row
+        el-col(:span="6" style="text-align:right;")
+            div(style="line-height:3") 状态
+        el-col(:span="18" style="text-align:left;")
+            el-checkbox(v-model="beanAdmStat",style="margin-left:15px;line-height:3",chec) 启用
+    el-row
+    el-row
+        el-col(:span="12" style="text-align:right;")
+            el-button(@click="editAdmin" style="margin-right:10px;") 确定
+        el-col(:span="12" style="text-align:left;")
+            el-button(@click="cancelAddAdmin()" style="margin-left:5px;") 取消

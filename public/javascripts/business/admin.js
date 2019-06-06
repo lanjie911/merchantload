@@ -1,22 +1,5 @@
 let vInst = null;
 
-// 处理请求列表的数据
-let handleReqQryResult = function (resp) {
-    //console.log(resp.data);
-    let rsdata = resp.data;
-    if (rsdata.rs == "ERROR") {
-        alert("服务器内部错误");
-        return [];
-    }
-    if (rsdata.rs == "OK") {
-        vInst.reqDataSet = rsdata.rsArray;
-        vInst.totalCount = rsdata.total;
-        return;
-    }
-    alert("未知错误");
-    return [];
-};
-
 vInst = new Vue({
     el: "#worksarea",
     data: {
@@ -75,11 +58,9 @@ vInst = new Vue({
     },
     created: function () {
         this.uiHeight = document.documentElement.clientHeight;
-        console.info("body height is %s", this.uiHeight);
     },
     mounted: function () {
-        console.log("mounted...refresh req list");
-        this.qryRequestList(1);
+        this.qryList('req', 1, this.handleReqPara, this.handleReqArray);
     },
     computed: {
         calcHeight: function () {
@@ -111,15 +92,22 @@ vInst = new Vue({
             document.getElementById("tab-" + idx).click();
 
         },
+        // 关闭标签
+        tabRemoved: function (tabIdx) {
+            console.log("tab index is %s", tabIdx);
+            document.getElementById("tab-" + tabIdx).style.display = "none";
+            document.getElementById("pane-" + tabIdx).style.display = "none";
+        },
+        // 点击标签
         tabClicked: function (tabObj) {
             let tabIdx = tabObj.index;
-            
+
             // 加载推广短信列表
             if (tabIdx == 1) {
                 if (this.isLoadSmsData) {
                     return;
                 }
-                this.qrySmsList(1);
+                this.qryList('sms', 1, this.handleSMSPara, this.handleSMSArray);
                 return;
             }
 
@@ -128,7 +116,7 @@ vInst = new Vue({
                 if (this.isLoadVcodeData) {
                     return;
                 }
-                this.qryVcodeList(1);
+                this.qryList('vcode', 1, this.handleVcodePara,this.handleVcodeArray);
                 return;
             }
 
@@ -137,95 +125,172 @@ vInst = new Vue({
                 if (this.isLoadAdmData) {
                     return;
                 }
-                this.qryAdminList(1);
+                this.qryList('admin', 1, this.handleAdminPara, this.handleAdminArray);
                 return;
             }
         },
         // 请求列表翻页
         goPage: function (pageNumber) {
-            //console.log(pageNumber);
-            this.qryRequestList(pageNumber);
+            this.qryList('req', pageNumber, this.handleReqPara.this.handleReqArray);
         },
-        // 关闭标签
-        tabRemoved: function (tabIdx) {
-            console.log("tab index is %s", tabIdx);
-            document.getElementById("tab-" + tabIdx).style.display = "none";
-            document.getElementById("pane-" + tabIdx).style.display = "none";
+
+        //管理员翻页方法
+        goMerAdmPage: function (pageNumber) {
+            this.qryList('admin', pageNumber, this.handleAdminPara, this.handleAdminArray);
         },
-        clearSearchConditions: function () {
-            this.merchantName = "";
-            this.requestBeginDate = "";
-            this.requestEndDate = "";
+        // 短信翻页
+        goSmsPage: function (pageNumber) {
+            this.qryList('sms', pageNumber, this.handleSMSPara, this.handleSMSArray);
+        },
+        // 验证码翻页
+        goVcodePage: function (pageNumber) {
+            this.qryList('vcode',pageNumber,this.handleVcodePara,this.handleVcodeArray);
+        },
+        // 清除查询条件
+        clearSearchConditions: function (paraName) {
+            if ('request' == paraName) {
+                this.merchantName = "";
+                this.requestBeginDate = "";
+                this.requestEndDate = "";
+                return;
+            }
+            if ('sms' == paraName) {
+                this.smsBeginDate = "";
+                this.smsEndDate = "";
+                return;
+            }
+            if ('vcode' == paraName) {
+                this.vcodeBeginDate = "";
+                this.vcodeEndDate = "";
+                this.vcodeMobile = "";
+                return;
+            }
         },
         // 请求列表条件查询
-        qryWithCondition: function () {
-            this.qryRequestList(1);
+        qryWithCondition: function (paraName) {
+            if ('request' == paraName) {
+                this.qryList('req', 1, this.handleReqPara, this.handleReqArray);
+                return;
+            }
+            if ('sms' == paraName) {
+                this.qryList('sms', 1, this.handleSMSPara, this.handleSMSArray);
+                return;
+            }
+
+            if ('vcode' == paraName) {
+                this.qryList('vcode', 1, this.handleVcodePara, this.handleVcodeArray);
+                return;
+            }
         },
-        qryRequestList: function (pageNumber) {
-            let rand = new Date().getTime();
-            let obParas = {
-                limit: 10,
-                offset: (pageNumber - 1) * 10,
-                randstamp: rand
-            };
+        // 绑定进件明细的处理器
+        handleReqPara: function (obParas) {
             if (this.requestBeginDate != "") {
                 obParas.paraBeginDate = this.requestBeginDate;
             }
             if (this.requestEndDate != "") {
                 obParas.paraEndDate = this.requestEndDate;
             }
-            axios.get("admin/qryreqlist", {
-                params: obParas
-            }).then(handleReqQryResult).catch(resp => {
-                console.log('请求失败：' + resp.status + ',' + resp.statusText);
-            });
         },
-        qryAdminList: function (pageNumber) {
+        // 处理进件数据的回显
+        handleReqArray: function (rsdata) {
+            if (rsdata.rs == "OK") {
+                vInst.reqDataSet = rsdata.rsArray;
+                vInst.totalCount = rsdata.total;
+                return;
+            }
+        },
+        // 绑定进件明细的处理器
+        handleAminPara: function (obParas) {
+            //NOOP
+        },
+        // 处理进件数据的回显
+        handleAdminArray: function (rsdata) {
+            if (rsdata.rs == "OK") {
+                for (let p = 0; p < rsdata.rsArray.length; p++) {
+                    if (rsdata.rsArray[p].is_root == 1) {
+                        rsdata.rsArray[p].is_root = "是";
+                    } else {
+                        rsdata.rsArray[p].is_root = "否";
+                    }
+                    if (rsdata.rsArray[p].admin_status == 1) {
+                        rsdata.rsArray[p].admin_status = "正常";
+                    } else {
+                        rsdata.rsArray[p].admin_status = "禁用";
+                    }
+                }
+                vInst.merAdminDataSet = rsdata.rsArray;
+                vInst.meradmTotalCount = rsdata.total;
+                return;
+            }
+        },
+
+        handleSMSPara: function (obParas) {
+            if (this.smsBeginDate != "") {
+                obParas.paraBeginDate = this.smsBeginDate;
+            }
+            if (this.smsEndDate != "") {
+                obParas.paraEndDate = this.smsEndDate;
+            }
+        },
+
+        handleSMSArray: function (rsdata) {
+            if (rsdata.rs == "OK") {
+                vInst.smsDataSet = rsdata.rsArray;
+                vInst.smsTotalCount = rsdata.total;
+                return;
+            }
+        },
+
+        handleVcodePara: function (obParas) {
+            if (this.vcodeBeginDate != "") {
+                obParas.paraBeginDate = this.vcodeBeginDate;
+            }
+            if (this.vcodeEndDate != "") {
+                obParas.paraEndDate = this.vcodeEndDate;
+            }
+            if (this.vcodeMobile != "") {
+                obParas.paraMobile = this.vcodeMobile;
+            }
+        },
+
+        handleVcodeArray: function (rsdata) {
+            if (rsdata.rs == "OK") {
+                console.log(rsdata.rsArray);
+                vInst.vcodeDataSet = rsdata.rsArray;
+                vInst.vcodeTotalCount = rsdata.total;
+                return;
+            }
+        },
+
+        qryList: function (funcName, pageNumber, paraBindHandler, arrayHandler) {
             let rand = new Date().getTime();
             let obParas = {
                 limit: 10,
                 offset: (pageNumber - 1) * 10,
                 randstamp: rand
             };
-            axios.get("admin/qryadminlist", {
+
+            // 处理绑定参数
+            paraBindHandler && paraBindHandler(obParas);
+
+            // 构造请求URL
+            let reqURL = 'admin/qry' + funcName + "list";
+
+            // ajax请求发出并处理
+            axios.get(reqURL, {
                 params: obParas
             }).then(function (resp) {
                 let rsdata = resp.data;
                 if (rsdata.rs == "ERROR") {
                     alert("服务器内部错误");
-                    return [];
-                }
-                if (rsdata.rs == "OK") {
-                    if (!rsdata.rsArray) {
-                        alert("没有查询到数据");
-                        return;
-                    }
-                    if (rsdata.rsArray.length == 0) {
-                        alert("没有查询到数据");
-                        return;
-                    }
-                    for (let p = 0; p < rsdata.rsArray.length; p++) {
-                        if (rsdata.rsArray[p].is_root == 1) {
-                            rsdata.rsArray[p].is_root = "是";
-                        } else {
-                            rsdata.rsArray[p].is_root = "否";
-                        }
-                        if (rsdata.rsArray[p].admin_status == 1) {
-                            rsdata.rsArray[p].admin_status = "正常";
-                        } else {
-                            rsdata.rsArray[p].admin_status = "禁用";
-                        }
-                    }
-                    vInst.merAdminDataSet = rsdata.rsArray;
-                    vInst.meradmTotalCount = rsdata.total;
                     return;
                 }
-                alert("未知错误");
-                return [];
+                arrayHandler && arrayHandler(rsdata);
             }).catch(resp => {
                 console.log('请求失败：' + resp.status + ',' + resp.statusText);
             });
         },
+
         goResetPwd: function () {
             let oldPwd = this.oldPwd;
             let newPwd = this.newPwd;
@@ -256,10 +321,6 @@ vInst = new Vue({
             });
         },
 
-        //管理员管理方法
-        goMerAdmPage: function (pageNumber) {
-            this.qryAdminList(pageNumber);
-        },
         // 启用/禁用
         changeAdminState: function (idx, row, nst) {
             let adminId = row.admin_id;
@@ -419,100 +480,6 @@ vInst = new Vue({
         showAddAdminDialog: function () {
             this.oper = "创建管理员";
             this.dialogVisible = true;
-        },
-
-        //短信的功能
-        qrySmsWithCondition: function () {
-            this.qrySmsList(1);
-        },
-        clearSmsSearchConditions: function () {
-            this.smsBeginDate = "";
-            this.smsEndDate = "";
-        },
-        goSmsPage: function (pageNumber) {
-            this.qrySmsList(pageNumber);
-        },
-        qrySmsList: function (pageNumber) {
-            let rand = new Date().getTime();
-            let obParas = {
-                limit: 10,
-                offset: (pageNumber - 1) * 10,
-                randstamp: rand
-            };
-            if (this.smsBeginDate != "") {
-                obParas.paraBeginDate = this.smsBeginDate;
-            }
-            if (this.smsEndDate != "") {
-                obParas.paraEndDate = this.smsEndDate;
-            }
-            axios.get("admin/qrysmslist", {
-                params: obParas
-            }).then(function (resp) {
-                let rsdata = resp.data;
-                if (rsdata.rs == "ERROR") {
-                    alert("服务器内部错误");
-                    return [];
-                }
-                if (rsdata.rs == "OK") {
-                    console.log(rsdata.rsArray);
-                    vInst.smsDataSet = rsdata.rsArray;
-                    vInst.smsTotalCount = rsdata.total;
-                    return;
-                }
-                alert("未知错误");
-                return [];
-            }).catch(resp => {
-                console.log('请求失败：' + resp.status + ',' + resp.statusText);
-            });
-        },
-
-        //验证码列表的功能
-        qryVcodeWithCondition: function () {
-            this.qryVcodeList(1);
-        },
-        clearVcodeSearchConditions: function () {
-            this.vcodeBeginDate = "";
-            this.vcodeEndDate = "";
-            this.vcodeMobile = "";
-        },
-        goVcodePage: function (pageNumber) {
-            this.qryVcodeList(pageNumber);
-        },
-        qryVcodeList: function (pageNumber) {
-            let rand = new Date().getTime();
-            let obParas = {
-                limit: 10,
-                offset: (pageNumber - 1) * 10,
-                randstamp: rand
-            };
-            if (this.vcodeBeginDate != "") {
-                obParas.paraBeginDate = this.vcodeBeginDate;
-            }
-            if (this.vcodeEndDate != "") {
-                obParas.paraEndDate = this.vcodeEndDate;
-            }
-            if (this.vcodeMobile != ""){
-                obParas.paraMobile = this.vcodeMobile;
-            }
-            axios.get("admin/qryvcodelist", {
-                params: obParas
-            }).then(function (resp) {
-                let rsdata = resp.data;
-                if (rsdata.rs == "ERROR") {
-                    alert("服务器内部错误");
-                    return [];
-                }
-                if (rsdata.rs == "OK") {
-                    console.log(rsdata.rsArray);
-                    vInst.vcodeDataSet = rsdata.rsArray;
-                    vInst.vcodeTotalCount = rsdata.total;
-                    return;
-                }
-                alert("未知错误");
-                return [];
-            }).catch(resp => {
-                console.log('请求失败：' + resp.status + ',' + resp.statusText);
-            });
         },
     }
 });

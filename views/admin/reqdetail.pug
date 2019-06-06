@@ -1,0 +1,12 @@
+el-tab-pane(label="进件明细" name="0")
+    <!--如果不绑定value-format，那么这个控件默认输出的是Date对象-->
+    el-date-picker(align="right" type="date" placeholder="选择开始日期" class="datepicker" v-model="requestBeginDate" value-format="yyyy-MM-dd")
+    el-date-picker(align="right" type="date" placeholder="选择结束日期" class="datepicker" v-model="requestEndDate" value-format="yyyy-MM-dd")
+    el-button(icon="el-icon-search" @click="qryWithCondition('request')") 查询
+    el-button(icon="el-icon-delete" @click="clearSearchConditions('request')") 清除查询条件
+    el-table(border style="width:100%" :data="reqDataSet")
+        el-table-column(label="请求编号" width="180" class="column-title" prop="req_id")
+        el-table-column(label="请求时间" width="180" class="column-title" prop="req_time")
+        el-table-column(label="报文信息" prop="raw_msg")
+        el-table-column(label="应答结果" width="180" class="column-title" prop="rs_status")
+    el-pagination(:current-page="currentPage" :page-size="pageSize" layout="total, prev, pager, next, jumper" :total="totalCount" class="rqpagination" @current-change="goPage")

@@ -1,0 +1,16 @@
+el-tab-pane(label="重置密码" name="4")
+    el-row(class="rowclaz")
+        el-col(:span="24")
+            el-input(v-model="oldPwd",placeholder="请输入原始密码",show-password,style="width:300px;margin-left:15px;",type="input")
+                template(slot="prepend") 旧的密码
+    el-row(class="rowclaz")
+        el-col(:span="24")
+            el-input(v-model="newPwd",placeholder="请输入新密码",show-password,style="width:300px;margin-left:15px;",type="input")
+                template(slot="prepend") 新的密码
+    el-row(class="rowclaz")
+        el-col(:span="24")
+            el-input(v-model="newPwdAffirm",placeholder="请再次输入新密码",show-password,style="width:300px;margin-left:15px;",type="input")
+                template(slot="prepend") 确认密码
+    el-row
+        el-col(:span="24")
+            el-button(@click="goResetPwd" style="margin-left:130px;") 确定

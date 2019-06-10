@@ -5,6 +5,7 @@ el-tab-pane(label="推广明细" name="1")
     el-button(icon="el-icon-delete" @click="clearSearchConditions('sms')") 清除查询条件
     el-table(border style="width:100%" :data="smsDataSet")
         el-table-column(label="短信编号" width="180" class="column-title" prop="req_id")
+        el-table-column(label="手机号码" width="180" class="column-title" prop="mobile")
         el-table-column(label="发送时间" width="180" class="column-title" prop="req_time")
         el-table-column(label="报文信息" prop="raw_msg")
         el-table-column(label="下行状态" width="180" class="column-title" prop="rs_stat")

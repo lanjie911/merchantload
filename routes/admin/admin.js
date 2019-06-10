@@ -349,7 +349,7 @@ router.get('/qrysmslist', function (req, res, next) {
     let merchant_id = req.session.loginAdmin.merchantId;
 
     // 查明细列表
-    let qryString = "select a.req_id, a.raw_msg, a.rs_status, a.rs_stat,";
+    let qryString = "select a.req_id, a.mobile, a.raw_msg, a.rs_status, a.rs_stat,";
     qryString += "date_format(a.req_time,'%Y-%m-%d %H:%i:%s') as req_time ";
     qryString += "from mt_command a where a.merchant_id=" + merchant_id + " ";
     let qryCount = "select count(1) as total from mt_command a where a.merchant_id=" + merchant_id + " ";

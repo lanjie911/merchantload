@@ -131,7 +131,7 @@ vInst = new Vue({
         },
         // 请求列表翻页
         goPage: function (pageNumber) {
-            this.qryList('req', pageNumber, this.handleReqPara.this.handleReqArray);
+            this.qryList('req', pageNumber, this.handleReqPara,this.handleReqArray);
         },
 
         //管理员翻页方法

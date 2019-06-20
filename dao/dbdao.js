@@ -2,7 +2,7 @@ let mysql = require('mysql');
 
 // 创建 mysql 连接池资源
 let pool = mysql.createPool({
-    host: '192.168.223.129',
+    host: 'localhost',
     user: 'nodeuser',
     password: 'nodeuser123!',
     database: 'daichao'
